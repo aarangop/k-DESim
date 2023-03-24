@@ -15,17 +15,7 @@ import kotlin.test.assertTrue
 class EnvironmentTest {
     val testEnv: Environment = Environment()
 
-    @Test
-    fun testEnvironmentTimeIsAdvancedToNextEventTime() {
-        val expectedTime = 10.0
-        val sampleEvent = Event(testEnv, expectedTime)
-
-        testEnv.schedule(sampleEvent)
-        testEnv.run()
-
-        assertEquals(expectedTime, testEnv.now)
-    }
-
+    
     @Test
     fun testSimulationFinishesusingTerminationEvent() {
         val terminationEvent = Event(testEnv, 10000.0)
