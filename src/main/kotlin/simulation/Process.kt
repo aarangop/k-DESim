@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023. Andrés Arango Pérez <arangoandres.p@gmail.com>
+ *
+ * You may use, distribute and modify this code under the terms of the MIT license.
+ */
+
 package simulation
 
 /**
@@ -13,18 +19,33 @@ class Process(
 ) : Event(env, timeout) {
 
     private var processSequenceIterator: Iterator<Event>? = null
+    private var processStartTime: Double = 0.0
 
     init {
         processSequenceIterator = processSequence.iterator()
+        processStartTime = env.now
     }
 
-    override fun action() {
-        // Start process execution by getting the next sequence item
-        try { // Leave this inside a try catch block in order to avoid 'peeking' into the iterator with hasNext
-            // If the sequence yields another event, make it call this function to continue execution whenever it is triggered.
-            processSequenceIterator?.next()?.addCallback { action() }
+    private fun resume() {
+        // Start process execution by getting the next event from the process sequence
+        try {
+            // Check for next item in iterator inside try/catch block to avoid 'peeking' into the iterator with hasNext
+            val nextEvent = processSequenceIterator?.next()
+            // Schedule next event
+            if (nextEvent != null) {
+                // Once the next event is executed the process needs to be resumed
+                nextEvent.addCallback { resume() }
+                env.schedule(nextEvent)
+            }
         } catch (_: NoSuchElementException) {
             // Process execution finished
+            isProcessed = true
         }
+    }
+
+    override fun processEvent() {
+        isTriggered = true
+
+        resume()
     }
 }
