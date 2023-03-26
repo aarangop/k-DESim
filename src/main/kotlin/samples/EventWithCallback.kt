@@ -1,15 +1,15 @@
 package samples
 
 import simulation.Environment
-import simulation.Event
+import simulation.EventBase
 
-class EventWithCallback(env: Environment, timeout: Double) : Event(env, timeout) {
+class EventWithCallback(env: Environment, timeout: Double) : EventBase(env, timeout) {
     override fun action() {
         println("Event action triggered at time ${env.now}")
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val env = Environment()
     val evt = EventWithCallback(env, 10.0)
 

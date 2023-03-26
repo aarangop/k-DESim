@@ -55,7 +55,7 @@ class EnvironmentTest {
 
     @Test
     fun testSimulationFinishesusingTerminationEvent() {
-        val terminationEvent = Event(testEnv, 10000.0)
+        val terminationEvent = EventBase(testEnv, 10000.0)
 
         testEnv.run(terminationEvent)
 
@@ -74,7 +74,7 @@ class EnvironmentTest {
 
     @Test
     fun testEventProcessedFlagIsSetWhenEventIsProcessed() {
-        val testEvent = Event(testEnv, 10.0)
+        val testEvent = EventBase(testEnv, 10.0)
 
         testEnv.schedule(testEvent)
         testEnv.run()

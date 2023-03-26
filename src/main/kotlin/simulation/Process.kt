@@ -12,14 +12,15 @@ package simulation
  * A Process can be scheduled by the environment. The provided sequence will be executed and stopped on every yield.
  * The sequence must yield Event types, which will be scheduled and when fired, will cause the process to resume execution.
  */
-class Process(
+open class Process(
     env: Environment,
-    processSequence: Sequence<Event>,
+    processSequence: Sequence<EventBase>,
     timeout: Double = 0.0
-) : Event(env, timeout) {
+) : EventBase(env, timeout) {
 
-    private var processSequenceIterator: Iterator<Event>? = null
+    private var processSequenceIterator: Iterator<EventBase>? = null
     private var processStartTime: Double = 0.0
+    var processedEvent = EventBase(env, 0.0)
 
     init {
         processSequenceIterator = processSequence.iterator()
@@ -33,13 +34,15 @@ class Process(
             val nextEvent = processSequenceIterator?.next()
             // Schedule next event
             if (nextEvent != null) {
-                // Once the next event is executed the process needs to be resumed
+                // Once the next event is processed the process needs to be resumed
                 nextEvent.addCallback { resume() }
                 env.schedule(nextEvent)
             }
         } catch (_: NoSuchElementException) {
             // Process execution finished
             isProcessed = true
+            // Schedule execution of processedEvent event
+            env.schedule(processedEvent)
         }
     }
 
