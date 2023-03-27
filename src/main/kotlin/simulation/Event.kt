@@ -6,34 +6,28 @@
 
 package simulation
 
-import simulation.EventPriority.NORMAL
+class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
+    private var value: EventValue<T> = EventValue()
 
-
-open class Event(
-    val env: Environment,
-    val timeout: Double = 0.0,
-    val priority: EventPriority = NORMAL
-) {
-    var isTriggered: Boolean = false
-    var isProcessed: Boolean = false
-    var scheduledExecutionTime: Double = 0.0
-
-    init {
-        require(timeout >= 0) { "Timeout for event cannot be negative." }
+    /**
+     * The `Event.succeed` function causes the event to be scheduled immediately. If an event value is provided it will
+     * become available once the event has been successfully processed.
+     *
+     * @param value: T: Value to assign to the event once it has been processed
+     */
+    fun succeed(value: T?) {
+        // Set the value of the event.
+        this.value.value = value
+        this.value.status = EventValueStatus.AVAILABLE
+        // Call base class' succeed, which schedules the event
+        super.succeed()
     }
 
-    private var callbacks: Array<(Event) -> Unit> = emptyArray()
-
-    open fun action() {}
-    internal open fun processEvent() {
-        isTriggered = true
-        for (c in callbacks) {
-            c(this)
+    fun value(): T? {
+        return if (value.status == EventValueStatus.AVAILABLE) {
+            value.value
+        } else {
+            null
         }
-        isProcessed = true
-    }
-
-    open fun addCallback(fn: (Event) -> Unit) {
-        callbacks += fn
     }
 }

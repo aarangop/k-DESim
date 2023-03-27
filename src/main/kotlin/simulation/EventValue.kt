@@ -6,4 +6,4 @@
 
 package simulation
 
-class Timeout(env: Environment, timeout: Double) : EventBase(env, timeout)
+class EventValue<T>(var status: EventValueStatus = EventValueStatus.PENDING, var value: T? = null)

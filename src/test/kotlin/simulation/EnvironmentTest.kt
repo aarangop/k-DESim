@@ -8,6 +8,7 @@ package simulation
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -15,10 +16,46 @@ import kotlin.test.assertTrue
 class EnvironmentTest {
     val testEnv: Environment = Environment()
 
-    
+    /**
+     * The simulation should stop if there are no more events.
+     */
+    @Test
+    fun `test event queue is empty when environment finishes`() {
+        var log = emptyList<Double>()
+        val process = Process(testEnv, sequence {
+            while (testEnv.now < 2) {
+                log += testEnv.now
+                yield(testEnv.timeout(1.0))
+            }
+        })
+        testEnv.schedule(process)
+        testEnv.run()
+
+        assertContentEquals(listOf(0.0, 1.0), log)
+    }
+
+    @Test
+    fun `simulation runs until event termination`() {
+        val process = Process(testEnv, sequence {
+            while (testEnv.now < 5) {
+                yield(testEnv.timeout(1.0))
+            }
+        })
+        val terminationEvent = testEnv.timeout(100.0)
+        testEnv.schedule(process)
+        testEnv.run(terminationEvent)
+
+        assertEquals(100.0, testEnv.now)
+    }
+
+    @Test
+    fun `exception thrown with negative until`() {
+        assertThrows<IllegalArgumentException> { testEnv.run(-5.0) }
+    }
+
     @Test
     fun testSimulationFinishesusingTerminationEvent() {
-        val terminationEvent = Event(testEnv, 10000.0)
+        val terminationEvent = EventBase(testEnv, 10000.0)
 
         testEnv.run(terminationEvent)
 
@@ -37,7 +74,7 @@ class EnvironmentTest {
 
     @Test
     fun testEventProcessedFlagIsSetWhenEventIsProcessed() {
-        val testEvent = Event(testEnv, 10.0)
+        val testEvent = EventBase(testEnv, 10.0)
 
         testEnv.schedule(testEvent)
         testEnv.run()
@@ -101,4 +138,6 @@ class EnvironmentTest {
             { assertContentEquals(p2ExpectedTimeouts, p2ExecutionTimes) }
         )
     }
+
+    // TODO: Test event priority. From two events scheduled at the same time the one with the highest priority has to be triggered first.
 }
