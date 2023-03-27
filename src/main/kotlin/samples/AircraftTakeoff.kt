@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023. Andrés Arango Pérez <arangoandres.p@gmail.com>
+ *
+ * You may use, distribute and modify this code under the terms of the MIT license.
+ */
+
 package samples
 
 import simulation.Environment
@@ -5,14 +11,31 @@ import simulation.Event
 import simulation.Process
 
 class Aircraft(val env: Environment, val aircraftId: String) {
-    val turnOnEvent: Event<Aircraft> = Event(env, 0.0)
+    val turnOnEvent: Event<Aircraft> = Event(env)
+    val takeoffEvent: Event<Aircraft> = Event(env)
+    private var isOn = false
 
-    val turnOn = Process(env, sequence {
-        //
-        yield(env.timeout(10.0))
-        println("${aircraftId} turned on @ ${env.now}")
-//        turnOnEvent.succeed(this@Aircraft)
-    })
+    fun turnOn(): Event<Aircraft> {
+        env.schedule(Process(env, sequence {
+            // Wait for 10 seconds to simulate aircraft turning on
+            yield(env.timeout(10.0))
+            this@Aircraft.isOn = true
+            // Signal that the turn on event succeeded, pass the aircraft as value
+            turnOnEvent.succeed(this@Aircraft)
+        }))
+        return turnOnEvent
+    }
+
+    fun takeOff(): Event<Aircraft> {
+        env.schedule(Process(env, sequence {
+            if (!isOn) {
+                takeoffEvent.fail()
+            }
+            yield(env.timeout(30.0))
+            takeoffEvent.succeed(this@Aircraft)
+        }))
+        return takeoffEvent
+    }
 }
 
 fun main() {
@@ -21,13 +44,18 @@ fun main() {
     val aircraft = Aircraft(env, "Aircraft 1")
 
     val monitoringProcess = Process(env, sequence {
-        val turnOnFinishedEvent = env.process(aircraft.turnOn)
-        // TODO: In this case an event is yielded which is not triggered by a timeout but by another process with
-        //  `event.succeed`, therefore it should not be scheduled normally.
-        yield(turnOnFinishedEvent)
-        println("${aircraft.aircraftId} is turned on @ ${env.now}")
+        yield(aircraft.turnOn())
+        val aircraftThatTurnedOn = aircraft.turnOnEvent.value()
+        if (aircraftThatTurnedOn != null) {
+            println("${aircraftThatTurnedOn.aircraftId} powered up @ ${env.now}")
+        }
+        yield(aircraft.takeOff())
+        val aircraftThatTookOff = aircraft.takeoffEvent.value()
+        if (aircraftThatTookOff != null) {
+            println("${aircraftThatTookOff.aircraftId} took off @ ${env.now}")
+        }
     })
 
     env.schedule(monitoringProcess)
-    env.run()
+    env.run(1000.0)
 }

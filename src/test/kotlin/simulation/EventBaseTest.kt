@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023. Andrés Arango Pérez <arangoandres.p@gmail.com>
+ *
+ * You may use, distribute and modify this code under the terms of the MIT license.
+ */
+
 package simulation
 
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -7,23 +13,24 @@ class EventBaseTest {
     val env: Environment = Environment()
 
     @Test
-    fun accessValue() {
-        // Create an event
-        val event = EventBase(env, 10.0)
-        // Append a callback to the event that returns a value
-        event.addCallback {
-            //            return "Event Value"
-        }
-        // Create variable to store the event's return value
-        val eventValue = "None"
-        // Create a process that waits for the event to be processed
-        val process = Process(env, sequence {
-            // eventValue = yield(event)
+    fun `an event's value is set when it succeeds`() {
+        val event = Event<String>(env, 10.0)
+        var eventValue: String? = null
+        var expectedEventValue = "Success!!"
+
+        val eventTriggeringProcess = Process(env, sequence {
+            yield(env.schedule(env.timeout(10.0)))
+            event.succeed(expectedEventValue)
         })
-        env.schedule(process)
+
+        val eventReceivingProcess = Process(env, sequence {
+            yield(event)
+            eventValue = event.value()
+        })
+
+        env.process(eventReceivingProcess, eventTriggeringProcess)
         env.run()
 
-        assertEquals("Event Value", eventValue)
+        assertEquals(expectedEventValue, eventValue)
     }
-
 }

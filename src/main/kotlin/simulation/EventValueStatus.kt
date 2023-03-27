@@ -6,4 +6,7 @@
 
 package simulation
 
-class Timeout(env: Environment, timeout: Double) : EventBase(env, timeout)
+enum class EventValueStatus {
+    PENDING,
+    AVAILABLE
+}

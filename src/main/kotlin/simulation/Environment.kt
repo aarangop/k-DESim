@@ -35,10 +35,13 @@ class Environment(var now: Double = 0.0) {
     }
 
     fun timeout(timeout: Double): Timeout {
-        return Timeout(this, timeout)
+        val timeoutEvent = Timeout(this, timeout)
+        schedule(timeoutEvent)
+        return timeoutEvent
     }
 
     private fun run() {
+        // TODO: The simulation should finish with the termination event.
         while (!eventQueue.isEmpty()) {
             val nextEvent = eventQueue.remove()
             now = nextEvent.scheduledExecutionTime
@@ -50,14 +53,27 @@ class Environment(var now: Double = 0.0) {
         event.setId(nextEventId())
     }
 
+    /**
+     * Schedules the processing of a process on the simulation environment.
+     */
     fun process(process: Process): EventBase {
         schedule(process)
-        return process.processedEvent
+        return process
     }
 
-    fun schedule(event: EventBase) {
-        event.scheduledExecutionTime = now + event.timeout
+    fun process(vararg processes: Process): List<EventBase> {
+        val processFinishedEvents = mutableListOf<EventBase>()
+        for (process in processes) {
+            schedule(process)
+            processFinishedEvents += process
+        }
+        return processFinishedEvents
+    }
+
+    fun schedule(event: EventBase): EventBase {
+        event.scheduledExecutionTime = now + (event.timeout ?: 0.0)
         assignEventId(event)
         eventQueue.add(event)
+        return event
     }
 }

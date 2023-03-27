@@ -138,4 +138,6 @@ class EnvironmentTest {
             { assertContentEquals(p2ExpectedTimeouts, p2ExecutionTimes) }
         )
     }
+
+    // TODO: Test event priority. From two events scheduled at the same time the one with the highest priority has to be triggered first.
 }
