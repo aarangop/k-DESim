@@ -14,7 +14,6 @@ class Aircraft(val env: Environment, val aircraftId: String) {
     val turnOnEvent: Event<Aircraft> = Event(env)
     val takeoffEvent: Event<Aircraft> = Event(env)
     private var isOn = false
-
     fun turnOn(): Event<Aircraft> {
         env.schedule(Process(env, sequence {
             // Wait for 10 seconds to simulate aircraft turning on
