@@ -15,16 +15,19 @@ import simulation.event.EventPriority.NORMAL
  */
 open class EventBase(
     val env: Environment,
-    val timeout: Double? = null,
+    val timeout: Double = 0.0,
     val priority: EventPriority = NORMAL
 ) {
     var isTriggered: Boolean = false
+        protected set
     var isProcessed: Boolean = false
+        protected set
     var scheduledExecutionTime: Double = 0.0
+        internal set
     private var eventId: Int? = null
 
     init {
-        require((timeout == null) || (timeout >= 0)) { "Timeout for event must be null or positive." }
+        require(timeout >= 0) { "Timeout for event must be null or positive." }
     }
 
     private var callbacks: Array<(EventBase) -> Unit> = emptyArray()
@@ -56,8 +59,17 @@ open class EventBase(
      *
      * @param fn Callback to be appended to the event's callback list.
      */
-    open fun addCallback(fn: (EventBase) -> Unit) {
+    open fun appendCallback(fn: (EventBase) -> Unit) {
         callbacks += fn
+    }
+
+    /**
+     * Prepend a callback to the event's callback list.
+     *
+     * @param fn Callback to be prepended to the event's callback list.
+     */
+    open fun prependCallback(fn: (EventBase) -> Unit) {
+        callbacks += arrayOf(fn) + callbacks
     }
 
     /**

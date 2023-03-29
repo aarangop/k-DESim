@@ -21,11 +21,14 @@ import simulation.core.Environment
 open class Process(
     env: Environment,
     processSequence: Sequence<EventBase>,
-    timeout: Double = 0.0
+    timeout: Double = 0.0,
+    val processId: String? = null
 ) : EventBase(env, timeout) {
 
-    private var processSequenceIterator: Iterator<EventBase>? = null
+    private var processSequenceIterator: Iterator<EventBase> = processSequence.iterator()
     private var processStartTime: Double = 0.0
+    var isAlive: Boolean = false
+        private set
 
     init {
         processSequenceIterator = processSequence.iterator()
@@ -36,16 +39,22 @@ open class Process(
         // Start process execution by getting the next event from the process sequence
         try {
             // Check for next item in iterator inside try/catch block to avoid 'peeking' into the iterator with hasNext
-            processSequenceIterator?.next()?.addCallback { resume() }
+            val nextEvent = processSequenceIterator.next()
+            if (nextEvent is Process) {
+                println("Next event is a process!")
+            }
+            nextEvent.appendCallback { resume() }
         } catch (_: NoSuchElementException) {
             // Process execution finished
             isProcessed = true
+            isAlive = false
         }
     }
 
 
     override fun processEvent() {
         isTriggered = true
+        isAlive = true
         resume()
     }
 }
