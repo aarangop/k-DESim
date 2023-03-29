@@ -4,8 +4,12 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.core
 
+import simulation.event.EventBase
+import simulation.event.EventPriority
+import simulation.event.Process
+import simulation.event.Timeout
 import java.util.*
 
 /**

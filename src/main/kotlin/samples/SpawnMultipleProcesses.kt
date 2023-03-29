@@ -6,8 +6,8 @@
 
 package samples
 
-import simulation.Environment
-import simulation.Process
+import simulation.core.Environment
+import simulation.event.Process
 
 fun main() {
     // Create environment

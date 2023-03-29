@@ -9,6 +9,9 @@ package simulation
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
+import simulation.core.Environment
+import simulation.event.EventBase
+import simulation.event.Process
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

@@ -4,6 +4,9 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
 
-class EventValue<T>(var status: EventValueStatus = EventValueStatus.PENDING, var value: T? = null)
+enum class EventValueStatus {
+    PENDING,
+    AVAILABLE
+}

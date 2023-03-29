@@ -4,9 +4,10 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
 
-import simulation.EventPriority.NORMAL
+import simulation.core.Environment
+import simulation.event.EventPriority.NORMAL
 
 
 /**
@@ -28,10 +29,8 @@ open class EventBase(
 
     private var callbacks: Array<(EventBase) -> Unit> = emptyArray()
 
-    open fun action() {}
-
     /**
-     * The `Event.succeed` function causes the event to be scheduled and processed immediately.
+     * Schedule the event immediately.
      */
     open fun succeed() {
         env.schedule(this)
@@ -39,7 +38,9 @@ open class EventBase(
 
     /**
      * The `Event.processEvent` function iterates through the callbacks assigned to the event and executes them.
+     *
      * Before executing the callbacks the isTriggered flag is set to true.
+     *
      * When all callbacks have been executed the isProcessed flag is set to true.
      */
     internal open fun processEvent() {
@@ -51,17 +52,22 @@ open class EventBase(
     }
 
     /**
-     * Adds a callback to the event's callback list. These will be executed when the event is triggered.
+     * Appends a callback to the event's callback list.
+     *
+     * @param fn Callback to be appended to the event's callback list.
      */
     open fun addCallback(fn: (EventBase) -> Unit) {
         callbacks += fn
     }
 
-    internal fun setId(id: Int) {
-        eventId = id
+    /**
+     * Signal that the event failed. TODO how to do exception handling for failed events?
+     */
+    open fun fail() {
+//        throw EventFailedException(this)
     }
 
-    open fun fail() {
-
+    internal fun setId(id: Int) {
+        eventId = id
     }
 }

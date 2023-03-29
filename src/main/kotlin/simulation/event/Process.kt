@@ -4,7 +4,9 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
+
+import simulation.core.Environment
 
 /**
  * The Process class receives an event yielding sequence.
@@ -14,8 +16,7 @@ package simulation
  *
  * When the process sequence is being executed, execution will stop at every yield command.
  *
- * The sequence must yield EventBase types, which will be scheduled and when fired, will cause the process to resume
- * execution.
+ * The sequence must yield EventBase types. The yielded events will then be scheduled by the environment. When the events are fired, the sequence will continue execution.
  */
 open class Process(
     env: Environment,
@@ -41,6 +42,7 @@ open class Process(
             isProcessed = true
         }
     }
+
 
     override fun processEvent() {
         isTriggered = true

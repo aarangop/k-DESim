@@ -4,9 +4,6 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
 
-enum class EventPriority(val priority: Int) {
-    NORMAL(0),
-    HIGH(1)
-}
+class EventValue<T>(var status: EventValueStatus = EventValueStatus.PENDING, var value: T? = null)
