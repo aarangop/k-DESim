@@ -12,6 +12,15 @@ import simulation.core.Environment
  * The event class represents an event that can be triggered and processed by the environment. It is a generic class and
  * can hold values of the declared type which are set once the event is triggered.
  *
+ * From SimPy documentation:
+ * 'An event
+ *
+ *     - may happen (:attr:`triggered` is ``False``),
+ *     - is going to happen (:attr:`triggered` is ``True``) or
+ *     - has happened (:attr:`processed` is ``True``).
+ *     ...'
+ *
+ *
  * @param env Environment to which this event is associated
  * @param timeout Timeout to schedule event. Defaults to 0.0
  */

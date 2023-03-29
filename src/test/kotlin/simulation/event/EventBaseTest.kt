@@ -9,6 +9,7 @@ package simulation.event
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
+import simulation.process.Process
 
 class EventBaseTest : KDESimTestBase() {
 

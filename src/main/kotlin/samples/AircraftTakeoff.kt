@@ -8,7 +8,7 @@ package samples
 
 import simulation.core.Environment
 import simulation.event.Event
-import simulation.event.Process
+import simulation.process.Process
 
 class Aircraft(val env: Environment, val aircraftId: String) {
     val turnOnEvent: Event<Aircraft> = Event(env)

@@ -4,9 +4,10 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation.event
+package simulation.process
 
 import simulation.core.Environment
+import simulation.event.EventBase
 
 /**
  * The Process class receives an event yielding sequence.
@@ -17,6 +18,22 @@ import simulation.core.Environment
  * When the process sequence is being executed, execution will stop at every yield command.
  *
  * The sequence must yield EventBase types. The yielded events will then be scheduled by the environment. When the events are fired, the sequence will continue execution.
+ *
+ * From SimPy's documentation:
+ *
+ * '
+ * A generator (also known as a coroutine) can suspend its execution by
+ * yielding an event. ``Process`` will take care of resuming the generator
+ * with the value of that event once it has happened. The exception of failed
+ * events is thrown into the generator.
+ *
+ * ``Process`` itself is an event, too. It is triggered, once the generator
+ * returns or raises an exception. The value of the process is the return
+ * value of the generator or the exception, respectively.
+ *
+ * Processes can be interrupted during their execution by :meth:`interrupt`.
+ *  ...
+ * '
  */
 open class Process(
     env: Environment,
@@ -27,34 +44,41 @@ open class Process(
 
     private var processSequenceIterator: Iterator<EventBase> = processSequence.iterator()
     private var processStartTime: Double = 0.0
+    val processFinishedEvent = EventBase(env)
+
     var isAlive: Boolean = false
         private set
 
     init {
-        processSequenceIterator = processSequence.iterator()
         processStartTime = env.now
+        this.appendCallback {
+            resume()
+        }
+    }
+
+    fun interrupt() {
+        // TODO Implement `Process.interrupt()`
     }
 
     private fun resume() {
-        // Start process execution by getting the next event from the process sequence
+        // Resume process by getting the next event from the process sequence
         try {
             // Check for next item in iterator inside try/catch block to avoid 'peeking' into the iterator with hasNext
             val nextEvent = processSequenceIterator.next()
-            if (nextEvent is Process) {
-                println("Next event is a process!")
-            }
             nextEvent.appendCallback { resume() }
         } catch (_: NoSuchElementException) {
             // Process execution finished
             isProcessed = true
             isAlive = false
+            processFinishedEvent.succeed()
         }
     }
-
 
     override fun processEvent() {
         isTriggered = true
         isAlive = true
-        resume()
+        for (callback in callbacks) {
+            callback(this)
+        }
     }
 }

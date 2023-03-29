@@ -18,19 +18,21 @@ open class EventBase(
     val timeout: Double = 0.0,
     val priority: EventPriority = NORMAL
 ) {
+    init {
+        require(timeout >= 0) { "Timeout for event must be null or positive." }
+    }
+
     var isTriggered: Boolean = false
         protected set
     var isProcessed: Boolean = false
         protected set
     var scheduledExecutionTime: Double = 0.0
         internal set
-    private var eventId: Int? = null
 
-    init {
-        require(timeout >= 0) { "Timeout for event must be null or positive." }
-    }
+    var id: Int? = null
+        private set
 
-    private var callbacks: Array<(EventBase) -> Unit> = emptyArray()
+    protected var callbacks: Array<(EventBase) -> Unit> = emptyArray()
 
     /**
      * Schedule the event immediately.
@@ -48,8 +50,8 @@ open class EventBase(
      */
     internal open fun processEvent() {
         isTriggered = true
-        for (c in callbacks) {
-            c(this)
+        for (callback in callbacks) {
+            callback(this)
         }
         isProcessed = true
     }
@@ -64,15 +66,6 @@ open class EventBase(
     }
 
     /**
-     * Prepend a callback to the event's callback list.
-     *
-     * @param fn Callback to be prepended to the event's callback list.
-     */
-    open fun prependCallback(fn: (EventBase) -> Unit) {
-        callbacks += arrayOf(fn) + callbacks
-    }
-
-    /**
      * Signal that the event failed. TODO how to do exception handling for failed events?
      */
     open fun fail() {
@@ -80,6 +73,6 @@ open class EventBase(
     }
 
     internal fun setId(id: Int) {
-        eventId = id
+        this.id = id
     }
 }

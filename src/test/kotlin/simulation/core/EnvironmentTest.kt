@@ -11,7 +11,8 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import simulation.KDESimTestBase
 import simulation.event.EventBase
-import simulation.event.Process
+import simulation.event.EventPriority
+import simulation.process.Process
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -140,5 +141,31 @@ class EnvironmentTest : KDESimTestBase() {
         )
     }
 
-    // TODO: Test event priority. From two events scheduled at the same time the one with the highest priority has to be triggered first.
+    @Test
+    fun `environment finishes with until event`() {
+        // TODO: Write this test.
+    }
+
+    @Test
+    fun `environment finishes with until process`() {
+        // TODO: write this test
+    }
+
+    @Test
+    fun `environment's event queue respects the event priority`() {
+        var eventWithDibs: Int? = null
+        fun callDibs(event: EventBase) {
+            if (eventWithDibs == null) {
+                eventWithDibs = event.id
+            }
+        }
+
+        val highPriorityEvent = EventBase(env, 10.0, EventPriority.HIGH)
+        val normalPriorityEvent = EventBase(env, 10.0, EventPriority.NORMAL)
+        highPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
+        normalPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
+        env.schedule(normalPriorityEvent, highPriorityEvent)
+        env.run()
+        assertEquals(highPriorityEvent.id, eventWithDibs)
+    }
 }

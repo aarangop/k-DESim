@@ -7,11 +7,11 @@
 package simulation.core
 
 import simulation.event.EventBase
-import simulation.event.Process
 import simulation.event.TerminationEvent
 import simulation.event.Timeout
 import simulation.exceptions.EmptySchedule
 import simulation.exceptions.StopSimulationException
+import simulation.process.Process
 import java.util.*
 
 /**
@@ -20,17 +20,19 @@ import java.util.*
  * @param now Initial simulation time
  */
 class Environment(var now: Double = 0.0) {
-    private var eventQueue = PriorityQueue { t1: EventBase, t2: EventBase ->
-        if (t1.timeout == t2.timeout)
-            (t1.priority.priority - t2.priority.priority)
-        else (t1.scheduledExecutionTime - t2.scheduledExecutionTime).toInt()
-    }
-
-    private var terminationEvent: TerminationEvent = TerminationEvent(this, 0.0)
-
     init {
         require(now >= 0) { "The initial simulation time must be positive." }
     }
+
+    private var eventQueue = PriorityQueue { t1: EventBase, t2: EventBase ->
+        if (t1.timeout == t2.timeout) {
+            (t2.priority.priority - t1.priority.priority)
+        } else {
+            (t1.scheduledExecutionTime - t2.scheduledExecutionTime).toInt()
+        }
+    }
+
+    private var terminationEvent: TerminationEvent = TerminationEvent(this, 0.0)
 
     companion object {
         private var id: Int = -1
@@ -59,7 +61,7 @@ class Environment(var now: Double = 0.0) {
     fun run(untilEvent: EventBase) {
         // Start a process that waits for the untilEvent to be triggered, then triggers the termination event.
         schedule(Process(this, sequence {
-            yield(untilEvent)
+            yield(schedule(untilEvent))
             terminationEvent.succeed()
         }))
         simulationLoop()
@@ -85,7 +87,18 @@ class Environment(var now: Double = 0.0) {
      */
     fun process(process: Process): EventBase {
         schedule(process)
-        return process
+        return process.processFinishedEvent
+    }
+
+    /**
+     * Create and schedule a new process with the provided sequence.
+     *
+     * @param processSequence Event yielding sequence.
+     *
+     * @return Scheduled process.
+     */
+    fun process(processSequence: Sequence<EventBase>): EventBase {
+        return process(Process(this, processSequence))
     }
 
     /**
@@ -118,6 +131,15 @@ class Environment(var now: Double = 0.0) {
         return event
     }
 
+    fun schedule(vararg events: EventBase): List<EventBase> {
+        val eventList = mutableListOf<EventBase>()
+        for (event in events) {
+            val scheduledEvent = schedule(event)
+            eventList += scheduledEvent
+        }
+        return eventList
+    }
+
     /**
      * Actual simulation loop. Triggers the processing of events from the event queue until it is empty or the termination event is triggered.
      */
@@ -127,7 +149,7 @@ class Environment(var now: Double = 0.0) {
                 step()
             } catch (e: StopSimulationException) {
                 // Simulation finished by termination event!
-                println("Simulation finished by termination event!")
+                break
             }
         }
     }

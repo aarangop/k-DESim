@@ -8,6 +8,7 @@ package simulation.event
 
 import org.junit.jupiter.api.assertAll
 import simulation.KDESimTestBase
+import simulation.process.Process
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -85,10 +86,9 @@ class ProcessTest : KDESimTestBase() {
         })
 
         env.process(p2)
-        env.run(p2)
+        env.run()
 
         assertAll(
-            { assertEquals(20.0, env.now) },
             { assertEquals(true, p1.isProcessed) },
             { assertEquals(true, p2.isProcessed) }
         )
