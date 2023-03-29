@@ -15,19 +15,24 @@ import simulation.event.EventPriority.NORMAL
  */
 open class EventBase(
     val env: Environment,
-    val timeout: Double? = null,
+    val timeout: Double = 0.0,
     val priority: EventPriority = NORMAL
 ) {
-    var isTriggered: Boolean = false
-    var isProcessed: Boolean = false
-    var scheduledExecutionTime: Double = 0.0
-    private var eventId: Int? = null
-
     init {
-        require((timeout == null) || (timeout >= 0)) { "Timeout for event must be null or positive." }
+        require(timeout >= 0) { "Timeout for event must be null or positive." }
     }
 
-    private var callbacks: Array<(EventBase) -> Unit> = emptyArray()
+    var isTriggered: Boolean = false
+        protected set
+    var isProcessed: Boolean = false
+        protected set
+    var scheduledExecutionTime: Double = 0.0
+        internal set
+
+    var id: Int? = null
+        private set
+
+    protected var callbacks: Array<(EventBase) -> Unit> = emptyArray()
 
     /**
      * Schedule the event immediately.
@@ -45,8 +50,8 @@ open class EventBase(
      */
     internal open fun processEvent() {
         isTriggered = true
-        for (c in callbacks) {
-            c(this)
+        for (callback in callbacks) {
+            callback(this)
         }
         isProcessed = true
     }
@@ -56,7 +61,7 @@ open class EventBase(
      *
      * @param fn Callback to be appended to the event's callback list.
      */
-    open fun addCallback(fn: (EventBase) -> Unit) {
+    open fun appendCallback(fn: (EventBase) -> Unit) {
         callbacks += fn
     }
 
@@ -68,6 +73,6 @@ open class EventBase(
     }
 
     internal fun setId(id: Int) {
-        eventId = id
+        this.id = id
     }
 }

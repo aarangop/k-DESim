@@ -7,9 +7,11 @@
 package simulation.core
 
 import simulation.event.EventBase
-import simulation.event.EventPriority
-import simulation.event.Process
+import simulation.event.TerminationEvent
 import simulation.event.Timeout
+import simulation.exceptions.EmptySchedule
+import simulation.exceptions.StopSimulationException
+import simulation.process.Process
 import java.util.*
 
 /**
@@ -18,15 +20,19 @@ import java.util.*
  * @param now Initial simulation time
  */
 class Environment(var now: Double = 0.0) {
-    private var eventQueue = PriorityQueue { t1: EventBase, t2: EventBase ->
-        if (t1.timeout == t2.timeout)
-            (t1.priority.priority - t2.priority.priority)
-        else (t1.scheduledExecutionTime - t2.scheduledExecutionTime).toInt()
-    }
-
     init {
         require(now >= 0) { "The initial simulation time must be positive." }
     }
+
+    private var eventQueue = PriorityQueue { t1: EventBase, t2: EventBase ->
+        if (t1.timeout == t2.timeout) {
+            (t2.priority.priority - t1.priority.priority)
+        } else {
+            (t1.scheduledExecutionTime - t2.scheduledExecutionTime).toInt()
+        }
+    }
+
+    private var terminationEvent: TerminationEvent = TerminationEvent(this, 0.0)
 
     companion object {
         private var id: Int = -1
@@ -36,27 +42,28 @@ class Environment(var now: Double = 0.0) {
         }
     }
 
-    private class TerminationEvent(env: Environment, timeout: Double) : EventBase(env, timeout, EventPriority.HIGH)
-
     /**
      * Run the simulation until a timeout event based on the provided timeout is triggered.
      *
-     * @param timeout Timeout of the simulation termination event.
+     * @param until Timeout of the simulation termination event.
      */
-    fun run(timeout: Double = 1000.0) {
-        require(timeout > 0) { "Timeout must be greater than or equal to zero! " }
-        schedule(TerminationEvent(this, timeout))
-        simulationLoop()
+    fun run(until: Double = 1000.0) {
+        require(until > 0) { "Timeout must be greater than or equal to zero! " }
+        run(Timeout(this, until))
     }
 
     /**
      * Run the simulation until the termination event is triggered.
      *
-     * @param terminationEvent Event, which, when triggered, ends the simulation.
+     * @param untilEvent Event, which, when triggered, ends the simulation.
      *
      */
-    fun run(terminationEvent: EventBase) {
-        schedule(terminationEvent)
+    fun run(untilEvent: EventBase) {
+        // Start a process that waits for the untilEvent to be triggered, then triggers the termination event.
+        schedule(Process(this, sequence {
+            yield(schedule(untilEvent))
+            terminationEvent.succeed()
+        }))
         simulationLoop()
     }
 
@@ -80,7 +87,18 @@ class Environment(var now: Double = 0.0) {
      */
     fun process(process: Process): EventBase {
         schedule(process)
-        return process
+        return process.processFinishedEvent
+    }
+
+    /**
+     * Create and schedule a new process with the provided sequence.
+     *
+     * @param processSequence Event yielding sequence.
+     *
+     * @return Scheduled process.
+     */
+    fun process(processSequence: Sequence<EventBase>): EventBase {
+        return process(Process(this, processSequence))
     }
 
     /**
@@ -107,19 +125,30 @@ class Environment(var now: Double = 0.0) {
      * @return Scheduled event
      */
     fun schedule(event: EventBase): EventBase {
-        event.scheduledExecutionTime = now + (event.timeout ?: 0.0)
+        event.scheduledExecutionTime = now + event.timeout
         assignEventId(event)
         eventQueue.add(event)
         return event
+    }
+
+    fun schedule(vararg events: EventBase): List<EventBase> {
+        val eventList = mutableListOf<EventBase>()
+        for (event in events) {
+            val scheduledEvent = schedule(event)
+            eventList += scheduledEvent
+        }
+        return eventList
     }
 
     /**
      * Actual simulation loop. Triggers the processing of events from the event queue until it is empty or the termination event is triggered.
      */
     private fun simulationLoop() {
-        while (!eventQueue.isEmpty()) {
-            val event = step()
-            if (event is TerminationEvent) {
+        while (true) {
+            try {
+                step()
+            } catch (e: StopSimulationException) {
+                // Simulation finished by termination event!
                 break
             }
         }
@@ -131,10 +160,14 @@ class Environment(var now: Double = 0.0) {
      * @return The next event from the eventQueue
      */
     private fun step(): EventBase {
-        val nextEvent = eventQueue.remove()
-        now = nextEvent.scheduledExecutionTime
-        nextEvent.processEvent()
-        return nextEvent
+        try {
+            val nextEvent = eventQueue.remove()
+            now = nextEvent.scheduledExecutionTime
+            nextEvent.processEvent()
+            return nextEvent
+        } catch (e: NoSuchElementException) {
+            throw EmptySchedule()
+        }
     }
 
     private fun assignEventId(event: EventBase) {
