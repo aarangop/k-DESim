@@ -9,6 +9,9 @@ package simulation
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
+import simulation.core.Environment
+import simulation.event.EventBase
+import simulation.event.Process
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -55,7 +58,7 @@ class EnvironmentTest {
 
     @Test
     fun testSimulationFinishesusingTerminationEvent() {
-        val terminationEvent = Event(testEnv, 10000.0)
+        val terminationEvent = EventBase(testEnv, 10000.0)
 
         testEnv.run(terminationEvent)
 
@@ -74,7 +77,7 @@ class EnvironmentTest {
 
     @Test
     fun testEventProcessedFlagIsSetWhenEventIsProcessed() {
-        val testEvent = Event(testEnv, 10.0)
+        val testEvent = EventBase(testEnv, 10.0)
 
         testEnv.schedule(testEvent)
         testEnv.run()
@@ -138,4 +141,6 @@ class EnvironmentTest {
             { assertContentEquals(p2ExpectedTimeouts, p2ExecutionTimes) }
         )
     }
+
+    // TODO: Test event priority. From two events scheduled at the same time the one with the highest priority has to be triggered first.
 }

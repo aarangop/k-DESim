@@ -4,10 +4,7 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
 
-class Timeout(env: Environment, timeout: Double) : Event(env, timeout) {
-    init {
-//        env.schedule(this)
-    }
+class EventFailedException(val event: EventBase) : Exception() {
 }

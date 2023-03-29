@@ -4,8 +4,11 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
 
+/**
+ * Enum class to represent event's priority.
+ */
 enum class EventPriority(val priority: Int) {
     NORMAL(0),
     HIGH(1)

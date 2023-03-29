@@ -4,14 +4,11 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package samples
+package simulation.event
 
 import simulation.core.Environment
-import simulation.event.EventBase
 
-fun main() {
-    val env = Environment()
-    env.schedule(EventBase(env, 10.0))
-    env.run()
-    println("Simulation finished at time ${env.now}")
-}
+/**
+ * Wrapper class for timeout event.
+ */
+class Timeout(env: Environment, timeout: Double) : EventBase(env, timeout)

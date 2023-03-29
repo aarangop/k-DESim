@@ -4,21 +4,27 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation
+package simulation.event
+
+import simulation.core.Environment
 
 /**
- * The Process class receives a sequence which yields events.
+ * The Process class receives an event yielding sequence.
  *
- * A Process can be scheduled by the environment. The provided sequence will be executed and stopped on every yield.
- * The sequence must yield Event types, which will be scheduled and when fired, will cause the process to resume execution.
+ * A Process is itself an event and can be scheduled like a normal event. When it is triggered by the environment, the
+ * process' sequence starts.
+ *
+ * When the process sequence is being executed, execution will stop at every yield command.
+ *
+ * The sequence must yield EventBase types. The yielded events will then be scheduled by the environment. When the events are fired, the sequence will continue execution.
  */
-class Process(
+open class Process(
     env: Environment,
-    processSequence: Sequence<Event>,
+    processSequence: Sequence<EventBase>,
     timeout: Double = 0.0
-) : Event(env, timeout) {
+) : EventBase(env, timeout) {
 
-    private var processSequenceIterator: Iterator<Event>? = null
+    private var processSequenceIterator: Iterator<EventBase>? = null
     private var processStartTime: Double = 0.0
 
     init {
@@ -30,22 +36,16 @@ class Process(
         // Start process execution by getting the next event from the process sequence
         try {
             // Check for next item in iterator inside try/catch block to avoid 'peeking' into the iterator with hasNext
-            val nextEvent = processSequenceIterator?.next()
-            // Schedule next event
-            if (nextEvent != null) {
-                // Once the next event is executed the process needs to be resumed
-                nextEvent.addCallback { resume() }
-                env.schedule(nextEvent)
-            }
+            processSequenceIterator?.next()?.addCallback { resume() }
         } catch (_: NoSuchElementException) {
             // Process execution finished
             isProcessed = true
         }
     }
 
+
     override fun processEvent() {
         isTriggered = true
-
         resume()
     }
 }
