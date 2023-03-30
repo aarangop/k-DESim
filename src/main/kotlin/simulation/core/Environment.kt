@@ -49,11 +49,15 @@ class Environment(var now: Double = 0.0) {
      */
     fun run(until: Double = 1000.0) {
         require(until > 0) { "Timeout must be greater than or equal to zero! " }
-        run(Timeout(this, until))
+
+        run(schedule(Timeout(this, until)))
     }
 
     /**
      * Run the simulation until the termination event is triggered.
+     *
+     * The termination event must be scheduled by the user, otherwise the simulation will most likely eventually trigger
+     * an EmptySchedule exception.
      *
      * @param untilEvent Event, which, when triggered, ends the simulation.
      *
@@ -61,7 +65,7 @@ class Environment(var now: Double = 0.0) {
     fun run(untilEvent: EventBase) {
         // Start a process that waits for the untilEvent to be triggered, then triggers the termination event.
         schedule(Process(this, sequence {
-            yield(schedule(untilEvent))
+            yield(untilEvent)
             terminationEvent.succeed()
         }))
         simulationLoop()

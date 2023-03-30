@@ -12,6 +12,8 @@ import org.junit.jupiter.api.assertThrows
 import simulation.KDESimTestBase
 import simulation.event.EventBase
 import simulation.event.EventPriority
+import simulation.event.Timeout
+import simulation.exceptions.EmptySchedule
 import simulation.process.Process
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -22,7 +24,7 @@ class EnvironmentTest : KDESimTestBase() {
      * The simulation should stop if there are no more events.
      */
     @Test
-    fun `test event queue is empty when environment finishes`() {
+    fun `event queue is empty when environment finishes`() {
         val log = mutableListOf<Double>()
         val process = Process(env, sequence {
             while (env.now < 2) {
@@ -56,7 +58,7 @@ class EnvironmentTest : KDESimTestBase() {
     }
 
     @Test
-    fun testSimulationFinishesusingTerminationEvent() {
+    fun `simulation finishes using a termination event`() {
         val terminationEvent = EventBase(env, 10000.0)
 
         env.run(terminationEvent)
@@ -65,7 +67,7 @@ class EnvironmentTest : KDESimTestBase() {
     }
 
     @Test
-    fun testScheduleSetsEventScheduledExecutionTime() {
+    fun `schedule sets event scheduled execution time`() {
         val delay = 50.0
         val timeoutEvent = env.timeout(delay)
 
@@ -75,7 +77,7 @@ class EnvironmentTest : KDESimTestBase() {
     }
 
     @Test
-    fun testEventProcessedFlagIsSetWhenEventIsProcessed() {
+    fun `event processed flag is set when event is processed`() {
         val testEvent = EventBase(env, 10.0)
 
         env.schedule(testEvent)
@@ -85,9 +87,9 @@ class EnvironmentTest : KDESimTestBase() {
     }
 
     @Test
-    fun `test single process events are triggered at the right time`() {
+    fun `single process events are triggered at the right time`() {
         val executionTimes = mutableListOf<Double>()
-        val expectedExecutionTimes = listOf<Double>(10.0, 20.0)
+        val expectedExecutionTimes = listOf(10.0, 20.0)
         val p = Process(env, sequence {
             yield(env.timeout(10.0))
             executionTimes += env.now
@@ -102,7 +104,7 @@ class EnvironmentTest : KDESimTestBase() {
     }
 
     @Test
-    fun `test events of multiple processes are processed at the right time`() {
+    fun `events of multiple processes are processed at the right time`() {
         val p1Timeouts = listOf(10.0, 20.0)
         val p2Timeouts = listOf(15.0, 30.0)
         val p1ExpectedTimeouts = listOf(10.0, 30.0)
@@ -143,7 +145,21 @@ class EnvironmentTest : KDESimTestBase() {
 
     @Test
     fun `environment finishes with until event`() {
-        // TODO: Write this test.
+        val terminationEvent = Timeout(env, 10.0)
+        env.schedule(terminationEvent)
+        env.run(terminationEvent)
+        assertAll(
+            { assertEquals(10.0, env.now) },
+            { assertEquals(true, terminationEvent.isProcessed) }
+        )
+    }
+
+    @Test
+    fun `environment throws EmptySchedule exception if termination event is not scheduled by the user`() {
+        val terminationEvent = Timeout(env, 10.0)
+        assertThrows<EmptySchedule> {
+            env.run(terminationEvent)
+        }
     }
 
     @Test
@@ -164,8 +180,10 @@ class EnvironmentTest : KDESimTestBase() {
         val normalPriorityEvent = EventBase(env, 10.0, EventPriority.NORMAL)
         highPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
         normalPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
+
         env.schedule(normalPriorityEvent, highPriorityEvent)
         env.run()
+
         assertEquals(highPriorityEvent.id, eventWithDibs)
     }
 }

@@ -24,7 +24,7 @@ import simulation.core.Environment
  * @param env Environment to which this event is associated
  * @param timeout Timeout to schedule event. Defaults to 0.0
  */
-class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
+open class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
     private var value: EventValue<T> = EventValue()
 
     /**

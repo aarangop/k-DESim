@@ -6,6 +6,7 @@
 
 package simulation.event
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.assertAll
 import simulation.KDESimTestBase
 import simulation.process.Process
@@ -71,18 +72,18 @@ class ProcessTest : KDESimTestBase() {
      * The simulation should work for nested processes, e.g. process which yield another process.
      */
     @Test
-    fun `test nested processes`() {
+    fun `main processes can wait for a subprocess to finish`() {
+        val expectedTimes = arrayOf(10.0, 20.0, 20.0)
+        var actualTimes = emptyArray<Double>()
         val p1 = Process(env, sequence {
-            println("p1 starting")
             yield(env.timeout(10.0))
-            println("p1 finished waiting")
+            actualTimes += env.now
         })
         val p2 = Process(env, sequence {
-            println("p2 starting")
             yield(env.timeout(10.0))
-            println("p2 finished waiting, will wait for p1 to finish")
+            actualTimes += env.now
             yield(env.process(p1))
-            println("p1 and p2 finished")
+            actualTimes += env.now
         })
 
         env.process(p2)
@@ -90,7 +91,8 @@ class ProcessTest : KDESimTestBase() {
 
         assertAll(
             { assertEquals(true, p1.isProcessed) },
-            { assertEquals(true, p2.isProcessed) }
+            { assertEquals(true, p2.isProcessed) },
+            { Assertions.assertArrayEquals(expectedTimes, actualTimes) }
         )
     }
 }

@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
 import simulation.process.Process
 
-class EventBaseTest : KDESimTestBase() {
+class EventTest : KDESimTestBase() {
 
     @Test
     fun `an event's value is set when it succeeds`() {
-        val event = Event<String>(this@EventBaseTest.env, 10.0)
+        val event = Event<String>(this@EventTest.env, 10.0)
         var eventValue: String? = null
         val expectedEventValue = "Success!!"
 
@@ -36,7 +36,13 @@ class EventBaseTest : KDESimTestBase() {
     }
 
     @Test
-    fun `scheduling an event that has already been triggered throws an exception`() {
-        // todo
+    fun `an event's value is null before it succeeds`() {
+        val event = Event<String>(env, 10.0)
+        val process = sequence {
+            assertEquals(null, event.value())
+            yield(env.schedule(event))
+        }
+        env.process(process)
+        env.run(event)
     }
 }

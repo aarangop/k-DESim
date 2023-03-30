@@ -4,7 +4,8 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation.event
+package simulation.exceptions
 
-class EventFailedException(val event: EventBase) : Exception() {
-}
+import simulation.event.EventBase
+
+class EventFailedException(val event: EventBase) : Exception()
