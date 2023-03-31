@@ -6,4 +6,4 @@
 
 package simulation.exceptions
 
-class ResourceIsFullException : Throwable()
+class StoreIsFullException : Throwable()

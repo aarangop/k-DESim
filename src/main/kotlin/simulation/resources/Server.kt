@@ -4,9 +4,7 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-import simulation.core.Environment
+package simulation.resources
 
-open class ResourceBase(val env: Environment, val capacity: Double) {
-    open fun request() {}
-    open fun release() {}
-}
+// TODO: Implement Resource as a 'server', a single resource item that can be blocked and then released by a process.
+class Server

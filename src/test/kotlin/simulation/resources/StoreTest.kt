@@ -9,17 +9,27 @@ package simulation.resources
 
 import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
+import simulation.event.EventValueStatus
+import simulation.event.StoreGet
+import simulation.event.StorePut
 import simulation.exceptions.StoreAlreadyInitializedException
 import simulation.process.Process
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class StoreTest : KDESimTestBase() {
 
     private var storeCapacity = 10
     private var store: Store<Unit> = Store(this.env, storeCapacity)
+
+    fun getFullStore(): Store<Unit> {
+        val newStore = Store<Unit>(env, storeCapacity)
+        newStore.initialize(List(storeCapacity) { })
+        return newStore
+    }
+
+    fun getEmptyStore(): Store<Unit> {
+        return Store<Unit>(env, storeCapacity)
+    }
 
     @BeforeTest
     fun initializeStore() {
@@ -87,11 +97,38 @@ class StoreTest : KDESimTestBase() {
     }
 
     @Test
-    fun `when the store is empty, simulation halts until items become available`() {
+    fun `get request is fulfilled after item has been put into the store`() {
+        val store = getEmptyStore()
+        var getRequest: StoreGet<Unit>? = null
+        env.process(sequence {
+            getRequest = store.requestOne()
+            yield(getRequest!!)
+        })
+        env.process(sequence {
+            yield(env.timeout(10.0))
+            store.putOne(Unit)
+        })
 
+        env.run()
+
+        assertNotNull(getRequest!!.value())
     }
 
     @Test
-    fun put() {
+    fun `put request is fulfilled after an item has been taken from the store`() {
+        val store = getFullStore()
+        var putRequest: StorePut<Unit>? = null
+        env.process(sequence {
+            putRequest = store.putOne(Unit)
+            yield(putRequest!!)
+        })
+        env.process(sequence {
+            yield(env.timeout(50.0))
+            store.requestOne()
+        })
+
+        env.run()
+
+        assertEquals(EventValueStatus.AVAILABLE, putRequest!!.valueStatus)
     }
 }

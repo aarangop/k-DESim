@@ -60,6 +60,7 @@ class EnvironmentTest : KDESimTestBase() {
     @Test
     fun `simulation finishes using a termination event`() {
         val terminationEvent = EventBase(env, 10000.0)
+        env.schedule(terminationEvent)
 
         env.run(terminationEvent)
 

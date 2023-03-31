@@ -4,17 +4,17 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation.resources
+package simulation.event
 
 import simulation.core.Environment
-import simulation.event.Event
-import simulation.event.EventBase
+import simulation.resources.Store
 
-class StorePut<T>(env: Environment, private val resource: Store<T>, item: T) : Event<T>(env) {
+class StorePut<T>(env: Environment, private val resource: Store<T>, internal val item: T) : Event<T>(env) {
     private val tryPutEvent: EventBase = EventBase(env)
 
     init {
-        tryPutEvent.appendCallback { resource.tryPut(this, item) }
+        tryPutEvent.appendCallback { resource.tryPut(this) }
+        tryPutEvent.appendCallback { resource.processPut() }
         env.schedule(tryPutEvent)
     }
 }

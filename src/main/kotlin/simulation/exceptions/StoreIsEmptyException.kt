@@ -6,4 +6,4 @@
 
 package simulation.exceptions
 
-class ResourceDepletedException : Throwable()
+class StoreIsEmptyException : Throwable()
