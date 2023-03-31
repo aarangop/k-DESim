@@ -135,6 +135,13 @@ class Environment(var now: Double = 0.0) {
         return event
     }
 
+    /**
+     * Schedule multiple events on the simulation environment.
+     *
+     * @param events Events to be scheduled.
+     *
+     * @return List of the scheduled events.
+     */
     fun schedule(vararg events: EventBase): List<EventBase> {
         val eventList = mutableListOf<EventBase>()
         for (event in events) {

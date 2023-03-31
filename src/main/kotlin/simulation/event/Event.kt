@@ -25,7 +25,7 @@ import simulation.core.Environment
  * @param timeout Timeout to schedule event. Defaults to 0.0
  */
 open class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
-    private var value: EventValue<T> = EventValue()
+    protected var value: EventValue<T> = EventValue()
 
     /**
      * The `Event.succeed` function causes the event to be scheduled immediately. If an event value is provided it will

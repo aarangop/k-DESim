@@ -6,43 +6,89 @@
 
 package simulation.resources
 
+
 import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
+import simulation.exceptions.StoreAlreadyInitializedException
 import simulation.process.Process
-import kotlin.random.Random
 import kotlin.test.BeforeTest
-import kotlin.test.assertNotNull
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class StoreTest : KDESimTestBase() {
-    class Product(val weight: Double, val size: Double)
 
-    var productStore: Store<Product> = Store(env, 10)
+    private var storeCapacity = 10
+    private var store: Store<Unit> = Store(this.env, storeCapacity)
 
     @BeforeTest
     fun initializeStore() {
-        productStore.initialize(List(productStore.capacity) {
-            Product(
-                Random.nextDouble(10.0, 200.0),
-                Random.nextDouble(1.0, 200.0),
-            )
-        })
+        store = Store(env, storeCapacity)
+        store.initialize(List(store.storeCapacity) { })
     }
 
     @Test
-    fun get() {
-        var requestedProduct: Product? = null
+    fun `uninitialized store has no available items`() {
+        val emptyStore = Store<Unit>(env, 10)
+        assertEquals(0, emptyStore.numberOfAvailableItems)
+    }
+
+    @Test
+    fun `initialized store has available items`() {
+        val store = Store<Unit>(env, 10)
+        store.initialize(List(10) {})
+        assertEquals(10, store.numberOfAvailableItems)
+    }
+
+    @Test
+    fun `trying to initialize a store again throws exception`() {
+        assertFailsWith<StoreAlreadyInitializedException> {
+            store.initialize(List(store.storeCapacity) { })
+        }
+    }
+
+    @Test
+    fun `get one item from the store`() {
+        var requestedItem: Unit? = null
         val p1 = Process(env, sequence {
             // Request a product from the store
-            val request = productStore.get(1.0)
+            val request = store.requestOne()
             yield(request)
-            if (request.value() != null) {
-                requestedProduct = request.value()
-            }
+            requestedItem = request.value()
         })
         env.process(p1)
         env.run()
 
-        assertNotNull(requestedProduct)
+        assert(requestedItem != null)
+    }
+
+    @Test
+    fun `put item into the store`() {
+        val store = Store<Unit>(env, 10)
+        env.process(sequence {
+            val request = store.putOne(Unit)
+            yield(request)
+        })
+        env.run()
+
+        assertEquals(1, store.numberOfAvailableItems)
+    }
+
+    @Test
+    fun `item is not added to the store if the store is full`() {
+        var request: StorePut<Unit>? = null
+        env.process(sequence {
+            request = store.putOne(Unit)
+            yield(request!!)
+        })
+        env.run()
+
+        assertNull(request?.value())
+    }
+
+    @Test
+    fun `when the store is empty, simulation halts until items become available`() {
+
     }
 
     @Test

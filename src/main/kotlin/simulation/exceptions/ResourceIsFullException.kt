@@ -4,6 +4,6 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-import simulation.core.Environment
+package simulation.exceptions
 
-open class ResourceBase(val env: Environment, val capacity: Double)
+class ResourceIsFullException : Throwable()

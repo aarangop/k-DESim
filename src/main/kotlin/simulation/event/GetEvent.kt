@@ -4,6 +4,9 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
+package simulation.event
+
+import ResourceBase
 import simulation.core.Environment
 
-open class ResourceBase(val env: Environment, val capacity: Double)
+class GetEvent<T>(env: Environment, resource: ResourceBase) : Event<T>(env)
