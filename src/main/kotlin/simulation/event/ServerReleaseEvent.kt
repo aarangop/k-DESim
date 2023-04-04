@@ -10,8 +10,8 @@ import simulation.core.Environment
 import simulation.resources.Server
 
 class ServerReleaseEvent(env: Environment, private val server: Server) :
-    Event<Server>(env) {
-    private val tryReleaseEvent = EventBase(env)
+    ValueEvent<Server>(env) {
+    private val tryReleaseEvent = Event(env)
 
     init {
         tryReleaseEvent.appendCallback { server.tryRelease(this) }

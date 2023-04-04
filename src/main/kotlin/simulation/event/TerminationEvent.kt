@@ -9,18 +9,12 @@ package simulation.event
 import simulation.core.Environment
 import simulation.exceptions.StopSimulationException
 
-class TerminationEvent(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout, EventPriority.HIGH) {
+class TerminationEvent(env: Environment, timeout: Double = 0.0) : Event(env, timeout, EventPriority.HIGH) {
     init {
         appendCallback { terminationCallback() }
     }
 
     private fun terminationCallback() {
         throw StopSimulationException(this)
-    }
-
-    companion object {
-        fun fromEvent(event: EventBase): TerminationEvent {
-            return TerminationEvent(event.env, event.timeout)
-        }
     }
 }

@@ -6,12 +6,12 @@
 
 package simulation.exceptions
 
-import simulation.event.EventBase
+import simulation.event.Event
 import simulation.event.ServerRequestEvent
 
 class InvalidServerAction(
     activeRequest: ServerRequestEvent?,
-    callingScope: SequenceScope<EventBase>
+    callingScope: SequenceScope<Event>
 ) :
     Throwable(
         "Attempted to run a function from $callingScope but the ${activeRequest?.scope} is blocking the Server."

@@ -7,14 +7,14 @@
 package samples
 
 import simulation.core.Environment
-import simulation.event.Event
+import simulation.event.ValueEvent
 import simulation.process.Process
 
 class Aircraft(val env: Environment, val aircraftId: String) {
-    val turnOnEvent: Event<Aircraft> = Event(env)
-    val takeoffEvent: Event<Aircraft> = Event(env)
+    val turnOnEvent: ValueEvent<Aircraft> = ValueEvent(env)
+    val takeoffEvent: ValueEvent<Aircraft> = ValueEvent(env)
     private var isOn = false
-    fun turnOn(): Event<Aircraft> {
+    fun turnOn(): ValueEvent<Aircraft> {
         env.schedule(Process(env, sequence {
             // Wait for 10 seconds to simulate aircraft turning on
             yield(env.timeout(10.0))
@@ -25,7 +25,7 @@ class Aircraft(val env: Environment, val aircraftId: String) {
         return turnOnEvent
     }
 
-    fun takeOff(): Event<Aircraft> {
+    fun takeOff(): ValueEvent<Aircraft> {
         env.schedule(Process(env, sequence {
             if (!isOn) {
                 takeoffEvent.fail()

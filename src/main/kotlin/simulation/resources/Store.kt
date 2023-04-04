@@ -7,8 +7,8 @@
 package simulation.resources
 
 import simulation.core.Environment
-import simulation.event.StoreGet
-import simulation.event.StorePut
+import simulation.event.StoreGetEvent
+import simulation.event.StorePutEvent
 import simulation.exceptions.StoreAlreadyInitializedException
 import simulation.exceptions.StoreIsEmptyException
 import simulation.exceptions.StoreIsFullException
@@ -18,8 +18,8 @@ import simulation.exceptions.StoreIsFullException
  */
 class Store<T>(val env: Environment, val storeCapacity: Int) {
     private var items: ArrayDeque<T> = ArrayDeque()
-    private var getQueue: ArrayDeque<StoreGet<T>> = ArrayDeque()
-    private val putQueue: ArrayDeque<StorePut<T>> = ArrayDeque()
+    private var getQueue: ArrayDeque<StoreGetEvent<T>> = ArrayDeque()
+    private val putQueue: ArrayDeque<StorePutEvent<T>> = ArrayDeque()
     private var isInitialized = false
 
     /**
@@ -54,8 +54,8 @@ class Store<T>(val env: Environment, val storeCapacity: Int) {
      *
      * @return A `StoreGet<T>` event associated with the request
      */
-    fun requestOne(): StoreGet<T> {
-        return StoreGet(env, this)
+    fun requestOne(): StoreGetEvent<T> {
+        return StoreGetEvent(env, this)
     }
 
     /**
@@ -73,8 +73,8 @@ class Store<T>(val env: Environment, val storeCapacity: Int) {
      *
      * @return A `StorePut<T>` event associated with the request.
      */
-    fun putOne(item: T): StorePut<T> {
-        return StorePut(env, this, item)
+    fun putOne(item: T): StorePutEvent<T> {
+        return StorePutEvent(env, this, item)
     }
 
     /**
@@ -112,7 +112,7 @@ class Store<T>(val env: Environment, val storeCapacity: Int) {
      *
      * @param getEvent The event that will be triggered if the request is fulfilled
      */
-    internal fun tryGet(getEvent: StoreGet<T>) {
+    internal fun tryGet(getEvent: StoreGetEvent<T>) {
         try {
             getEvent.succeed(getNextItem())
         } catch (e: StoreIsEmptyException) {
@@ -129,7 +129,7 @@ class Store<T>(val env: Environment, val storeCapacity: Int) {
      *
      * @param putEvent The event that will be triggered when the item has been put into the store.
      */
-    internal fun tryPut(putEvent: StorePut<T>) {
+    internal fun tryPut(putEvent: StorePutEvent<T>) {
         try {
             putNextItem(putEvent.item)
             putEvent.succeed(putEvent.item)

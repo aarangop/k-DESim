@@ -7,7 +7,7 @@
 package simulation.resources
 
 import simulation.core.Environment
-import simulation.event.EventBase
+import simulation.event.Event
 import simulation.event.ServerReleaseEvent
 import simulation.event.ServerRequestEvent
 import simulation.exceptions.InvalidServerAction
@@ -35,7 +35,7 @@ open class Server(val env: Environment) {
      *
      * @param scope Current process scope
      */
-    fun serverAction(scope: SequenceScope<EventBase>, fn: () -> Sequence<EventBase>): Process {
+    fun serverAction(scope: SequenceScope<Event>, fn: () -> Sequence<Event>): Process {
         // Check that the provided scope matches the active request's scope.
         if (activeRequest?.hasSameScope(scope) == true) {
             val process = Process(env, fn())
@@ -55,7 +55,7 @@ open class Server(val env: Environment) {
      *
      * @return An event associated with the request.
      */
-    fun request(scope: SequenceScope<EventBase>): ServerRequestEvent {
+    fun request(scope: SequenceScope<Event>): ServerRequestEvent {
         return ServerRequestEvent(this.env, this, scope)
     }
 

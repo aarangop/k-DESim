@@ -9,8 +9,8 @@ package simulation.event
 import simulation.core.Environment
 import simulation.resources.Store
 
-class StorePut<T>(env: Environment, private val resource: Store<T>, internal val item: T) : Event<T>(env) {
-    private val tryPutEvent: EventBase = EventBase(env)
+class StorePutEvent<T>(env: Environment, private val resource: Store<T>, internal val item: T) : ValueEvent<T>(env) {
+    private val tryPutEvent: Event = Event(env)
 
     init {
         tryPutEvent.appendCallback { resource.tryPut(this) }

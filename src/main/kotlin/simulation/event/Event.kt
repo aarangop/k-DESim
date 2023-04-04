@@ -7,61 +7,72 @@
 package simulation.event
 
 import simulation.core.Environment
+import simulation.event.EventPriority.NORMAL
+
 
 /**
- * The event class represents an event that can be triggered and processed by the environment. It is a generic class and
- * can hold values of the declared type which are set once the event is triggered.
- *
- * From SimPy documentation:
- * 'An event
- *
- *     - may happen (:attr:`triggered` is ``False``),
- *     - is going to happen (:attr:`triggered` is ``True``) or
- *     - has happened (:attr:`processed` is ``True``).
- *     ...'
- *
- *
- * @param env Environment to which this event is associated
- * @param timeout Timeout to schedule event. Defaults to 0.0
+ * The EventBase class represents an event that can be scheduled and executed by the simulation environment.
  */
-open class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
-    protected var value: EventValue<T> = EventValue()
-    var valueStatus: EventValueStatus = EventValueStatus.PENDING
-        get() = value.status
+open class Event(
+    val env: Environment,
+    val timeout: Double = 0.0,
+    val priority: EventPriority = NORMAL
+) {
+    init {
+        require(timeout >= 0) { "Timeout for event must be null or positive." }
+    }
 
+    var isTriggered: Boolean = false
+        protected set
+    var isProcessed: Boolean = false
+        protected set
+    var scheduledExecutionTime: Double = 0.0
+        internal set
+
+    var id: Int? = null
+        private set
+
+    protected var callbacks: Array<(Event) -> Unit> = emptyArray()
 
     /**
-     * The `Event.succeed` function causes the event to be scheduled immediately. If an event value is provided it will
-     * become available once the event has been successfully processed.
-     *
-     * @param value: T: Value to assign to the event once it has been processed
+     * Schedule the event immediately.
      */
-    fun succeed(value: T?) {
-        // Set the value of the event.
-        this.value.value = value
-        this.value.status = EventValueStatus.AVAILABLE
-        // Call base class' succeed, which schedules the event
-        super.succeed()
+    open fun succeed() {
+        env.schedule(this)
     }
 
     /**
-     * Access the value of the event. Returns null if the value is not yet available.
+     * The `Event.processEvent` function iterates through the callbacks assigned to the event and executes them.
      *
-     * @return Value associated to the event or null if the value is not yet available.
+     * Before executing the callbacks the isTriggered flag is set to true.
+     *
+     * When all callbacks have been executed the isProcessed flag is set to true.
      */
-    fun value(): T? {
-        return if (value.status == EventValueStatus.AVAILABLE) {
-            value.value
-        } else {
-            null
+    internal open fun processEvent() {
+        isTriggered = true
+        for (callback in callbacks) {
+            callback(this)
         }
+        isProcessed = true
     }
 
     /**
-     * Expire the event by setting its value to `null` and setting its status to `EXPIRED`
+     * Appends a callback to the event's callback list.
+     *
+     * @param fn Callback to be appended to the event's callback list.
      */
-    internal open fun expire() {
-        value.value = null
-        value.status = EventValueStatus.EXPIRED
+    open fun appendCallback(fn: (Event) -> Unit) {
+        callbacks += fn
+    }
+
+    /**
+     * Signal that the event failed. TODO how to do exception handling for failed events?
+     */
+    open fun fail() {
+//        throw EventFailedException(this)
+    }
+
+    internal fun setId(id: Int) {
+        this.id = id
     }
 }

@@ -10,8 +10,8 @@ package simulation.resources
 import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
 import simulation.event.EventValueStatus
-import simulation.event.StoreGet
-import simulation.event.StorePut
+import simulation.event.StoreGetEvent
+import simulation.event.StorePutEvent
 import simulation.exceptions.StoreAlreadyInitializedException
 import simulation.process.Process
 import kotlin.test.*
@@ -86,7 +86,7 @@ class StoreTest : KDESimTestBase() {
 
     @Test
     fun `item is not added to the store if the store is full`() {
-        var request: StorePut<Unit>? = null
+        var request: StorePutEvent<Unit>? = null
         env.process(sequence {
             request = store.putOne(Unit)
             yield(request!!)
@@ -99,7 +99,7 @@ class StoreTest : KDESimTestBase() {
     @Test
     fun `get request is fulfilled after item has been put into the store`() {
         val store = getEmptyStore()
-        var getRequest: StoreGet<Unit>? = null
+        var getRequest: StoreGetEvent<Unit>? = null
         env.process(sequence {
             getRequest = store.requestOne()
             yield(getRequest!!)
@@ -117,7 +117,7 @@ class StoreTest : KDESimTestBase() {
     @Test
     fun `put request is fulfilled after an item has been taken from the store`() {
         val store = getFullStore()
-        var putRequest: StorePut<Unit>? = null
+        var putRequest: StorePutEvent<Unit>? = null
         env.process(sequence {
             putRequest = store.putOne(Unit)
             yield(putRequest!!)

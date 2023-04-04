@@ -6,6 +6,6 @@
 
 package simulation.exceptions
 
-import simulation.event.EventBase
+import simulation.event.Event
 
-class StopSimulationException(val event: EventBase) : Throwable()
+class StopSimulationException(val event: Event) : Throwable()

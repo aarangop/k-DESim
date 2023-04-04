@@ -7,17 +7,20 @@
 package simulation.process
 
 import simulation.core.Environment
-import simulation.event.EventBase
+import simulation.event.Event
 
 /**
- * The Process class receives an event yielding sequence.
+ * The `Process` class represents a process which can wait for other events to be triggered. Processes are declared with
+ * kotlin `sequences`, which are akin to Python's generators. The sequence associated with a `Process` must be an
+ * `EventBase` yielding sequence.
  *
  * A Process is itself an event and can be scheduled like a normal event. When it is triggered by the environment, the
  * process' sequence starts.
  *
  * When the process sequence is being executed, execution will stop at every yield command.
  *
- * The sequence must yield EventBase types. The yielded events will then be scheduled by the environment. When the events are fired, the sequence will continue execution.
+ * The sequence must yield EventBase types. The yielded events will then be scheduled by the environment. When the
+ * events are fired, the sequence will continue execution.
  *
  * From SimPy's documentation:
  *
@@ -37,13 +40,13 @@ import simulation.event.EventBase
  */
 open class Process(
     env: Environment,
-    processSequence: Sequence<EventBase>,
+    processSequence: Sequence<Event>,
     timeout: Double = 0.0
-) : EventBase(env, timeout) {
+) : Event(env, timeout) {
 
-    private var processSequenceIterator: Iterator<EventBase> = processSequence.iterator()
+    private var processSequenceIterator: Iterator<Event> = processSequence.iterator()
     private var processStartTime: Double = 0.0
-    val processFinishedEvent = EventBase(env)
+    val processFinishedEvent = Event(env)
 
     var isAlive: Boolean = false
         private set

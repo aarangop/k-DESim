@@ -11,4 +11,4 @@ import simulation.core.Environment
 /**
  * Wrapper class for timeout event.
  */
-class Timeout(env: Environment, timeout: Double) : EventBase(env, timeout)
+class Timeout(env: Environment, timeout: Double) : Event(env, timeout)

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import simulation.KDESimTestBase
 import simulation.core.Environment
-import simulation.event.EventBase
+import simulation.event.Event
 import simulation.exceptions.InvalidServerAction
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,7 +18,7 @@ import kotlin.test.assertFailsWith
 class ServerTest : KDESimTestBase() {
 
     class MyServer(env: Environment) : Server(env) {
-        fun doSomething(scope: SequenceScope<EventBase>) = serverAction(scope) {
+        fun doSomething(scope: SequenceScope<Event>) = serverAction(scope) {
             sequence {
                 println("Server will start a long work @${env.now}")
                 yield(env.timeout(50.0))

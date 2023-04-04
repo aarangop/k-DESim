@@ -6,7 +6,7 @@
 
 package simulation.core
 
-import simulation.event.EventBase
+import simulation.event.Event
 import simulation.event.TerminationEvent
 import simulation.event.Timeout
 import simulation.exceptions.EmptySchedule
@@ -24,7 +24,7 @@ class Environment(var now: Double = 0.0) {
         require(now >= 0) { "The initial simulation time must be positive." }
     }
 
-    private var eventQueue = PriorityQueue { t1: EventBase, t2: EventBase ->
+    private var eventQueue = PriorityQueue { t1: Event, t2: Event ->
         if (t1.timeout == t2.timeout) {
             (t2.priority.priority - t1.priority.priority)
         } else {
@@ -62,7 +62,7 @@ class Environment(var now: Double = 0.0) {
      * @param untilEvent Event, which, when triggered, ends the simulation.
      *
      */
-    fun run(untilEvent: EventBase) {
+    fun run(untilEvent: Event) {
         // Start a process that waits for the untilEvent to be triggered, then triggers the termination event.
         schedule(Process(this, sequence {
             yield(untilEvent)
@@ -89,7 +89,7 @@ class Environment(var now: Double = 0.0) {
      *
      * @param process Process to be scheduled by the environment.
      */
-    fun process(process: Process): EventBase {
+    fun process(process: Process): Event {
         schedule(process)
         return process.processFinishedEvent
     }
@@ -101,7 +101,7 @@ class Environment(var now: Double = 0.0) {
      *
      * @return Scheduled process.
      */
-    fun process(processSequence: Sequence<EventBase>): EventBase {
+    fun process(processSequence: Sequence<Event>): Event {
         return process(Process(this, processSequence))
     }
 
@@ -112,8 +112,8 @@ class Environment(var now: Double = 0.0) {
      *
      * @return List of events associated with the termination of the provided processes.
      */
-    fun process(vararg processes: Process): List<EventBase> {
-        val processFinishedEvents = mutableListOf<EventBase>()
+    fun process(vararg processes: Process): List<Event> {
+        val processFinishedEvents = mutableListOf<Event>()
         for (process in processes) {
             schedule(process)
             processFinishedEvents += process
@@ -128,7 +128,7 @@ class Environment(var now: Double = 0.0) {
      *
      * @return Scheduled event
      */
-    fun schedule(event: EventBase): EventBase {
+    fun schedule(event: Event): Event {
         event.scheduledExecutionTime = now + event.timeout
         assignEventId(event)
         eventQueue.add(event)
@@ -142,8 +142,8 @@ class Environment(var now: Double = 0.0) {
      *
      * @return List of the scheduled events.
      */
-    fun schedule(vararg events: EventBase): List<EventBase> {
-        val eventList = mutableListOf<EventBase>()
+    fun schedule(vararg events: Event): List<Event> {
+        val eventList = mutableListOf<Event>()
         for (event in events) {
             val scheduledEvent = schedule(event)
             eventList += scheduledEvent
@@ -170,7 +170,7 @@ class Environment(var now: Double = 0.0) {
      *
      * @return The next event from the eventQueue
      */
-    private fun step(): EventBase {
+    private fun step(): Event {
         try {
             val nextEvent = eventQueue.remove()
             now = nextEvent.scheduledExecutionTime
@@ -181,7 +181,7 @@ class Environment(var now: Double = 0.0) {
         }
     }
 
-    private fun assignEventId(event: EventBase) {
+    private fun assignEventId(event: Event) {
         event.setId(nextEventId())
     }
 }

@@ -9,8 +9,8 @@ package simulation.event
 import simulation.core.Environment
 import simulation.resources.Store
 
-class StoreGet<T>(env: Environment, private val resource: Store<T>) : Event<T>(env) {
-    private val tryGetEvent: EventBase = EventBase(env)
+class StoreGetEvent<T>(env: Environment, private val resource: Store<T>) : ValueEvent<T>(env) {
+    private val tryGetEvent: Event = Event(env)
 
     init {
         tryGetEvent.appendCallback { resource.tryGet(this) }

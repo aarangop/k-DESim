@@ -7,11 +7,11 @@
 package samples
 
 import simulation.core.Environment
-import simulation.event.EventBase
+import simulation.event.Event
 
 fun main() {
     val env = Environment()
-    env.schedule(EventBase(env, 10.0))
+    env.schedule(Event(env, 10.0))
     env.run()
     println("Simulation finished at time ${env.now}")
 }

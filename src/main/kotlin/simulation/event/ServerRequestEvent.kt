@@ -9,14 +9,15 @@ package simulation.event
 import simulation.core.Environment
 import simulation.resources.Server
 
-class ServerRequestEvent(env: Environment, private val server: Server, internal val scope: SequenceScope<EventBase>) :
-    Event<Server>(env) {
 
-    fun hasSameScope(actionScope: SequenceScope<EventBase>): Boolean {
+class ServerRequestEvent(env: Environment, private val server: Server, internal val scope: SequenceScope<Event>) :
+    ValueEvent<Server>(env) {
+
+    fun hasSameScope(actionScope: SequenceScope<Event>): Boolean {
         return scope == actionScope
     }
 
-    private val tryRequestEvent = EventBase(env)
+    private val tryRequestEvent = Event(env)
 
     init {
         tryRequestEvent.appendCallback { server.tryRequest(this) }

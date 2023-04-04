@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import simulation.KDESimTestBase
-import simulation.event.EventBase
+import simulation.event.Event
 import simulation.event.EventPriority
 import simulation.event.Timeout
 import simulation.exceptions.EmptySchedule
@@ -59,7 +59,7 @@ class EnvironmentTest : KDESimTestBase() {
 
     @Test
     fun `simulation finishes using a termination event`() {
-        val terminationEvent = EventBase(env, 10000.0)
+        val terminationEvent = Event(env, 10000.0)
         env.schedule(terminationEvent)
 
         env.run(terminationEvent)
@@ -79,7 +79,7 @@ class EnvironmentTest : KDESimTestBase() {
 
     @Test
     fun `event processed flag is set when event is processed`() {
-        val testEvent = EventBase(env, 10.0)
+        val testEvent = Event(env, 10.0)
 
         env.schedule(testEvent)
         env.run()
@@ -171,16 +171,16 @@ class EnvironmentTest : KDESimTestBase() {
     @Test
     fun `environment's event queue respects the event priority`() {
         var eventWithDibs: Int? = null
-        fun callDibs(event: EventBase) {
+        fun callDibs(event: Event) {
             if (eventWithDibs == null) {
                 eventWithDibs = event.id
             }
         }
 
-        val highPriorityEvent = EventBase(env, 10.0, EventPriority.HIGH)
-        val normalPriorityEvent = EventBase(env, 10.0, EventPriority.NORMAL)
-        highPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
-        normalPriorityEvent.appendCallback { event: EventBase -> callDibs(event) }
+        val highPriorityEvent = Event(env, 10.0, EventPriority.HIGH)
+        val normalPriorityEvent = Event(env, 10.0, EventPriority.NORMAL)
+        highPriorityEvent.appendCallback { event: Event -> callDibs(event) }
+        normalPriorityEvent.appendCallback { event: Event -> callDibs(event) }
 
         env.schedule(normalPriorityEvent, highPriorityEvent)
         env.run()
