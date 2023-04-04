@@ -5,8 +5,19 @@
  */
 
 import simulation.core.Environment
+import simulation.event.EventBase
+import simulation.resources.ServerRequestEvent
 
-open class ResourceBase(val env: Environment, val capacity: Double) {
-    open fun request() {}
-    open fun release() {}
+open class ResourceBase(val env: Environment) {
+    open fun request(): EventBase {
+        throw NotImplementedError()
+    }
+
+    open fun release(): EventBase {
+        throw NotImplementedError()
+    }
+
+    open fun request(scope: SequenceScope<EventBase>): ServerRequestEvent {
+        throw NotImplementedError()
+    }
 }

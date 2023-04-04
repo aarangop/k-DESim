@@ -4,10 +4,6 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-package simulation.event
+package simulation.exceptions
 
-enum class EventValueStatus {
-    PENDING,
-    AVAILABLE,
-    EXPIRED
-}
+class ServerIsAlreadyBlockedException : Throwable()

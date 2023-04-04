@@ -25,8 +25,8 @@ import simulation.core.Environment
  * @param timeout Timeout to schedule event. Defaults to 0.0
  */
 open class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, timeout) {
-    private var value: EventValue<T> = EventValue()
-    val valueStatus: EventValueStatus
+    protected var value: EventValue<T> = EventValue()
+    var valueStatus: EventValueStatus = EventValueStatus.PENDING
         get() = value.status
 
 
@@ -55,5 +55,13 @@ open class Event<T>(env: Environment, timeout: Double = 0.0) : EventBase(env, ti
         } else {
             null
         }
+    }
+
+    /**
+     * Expire the event by setting its value to `null` and setting its status to `EXPIRED`
+     */
+    internal open fun expire() {
+        value.value = null
+        value.status = EventValueStatus.EXPIRED
     }
 }

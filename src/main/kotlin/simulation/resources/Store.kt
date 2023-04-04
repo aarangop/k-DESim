@@ -17,7 +17,7 @@ import simulation.exceptions.StoreIsFullException
 /**
  * Discrete resource. Hols a definite, integer number of items.
  */
-class Store<T>(env: Environment, val storeCapacity: Int) : ResourceBase(env, storeCapacity.toDouble()) {
+class Store<T>(env: Environment, val storeCapacity: Int) : ResourceBase(env) {
     private var items: ArrayDeque<T> = ArrayDeque()
     private var getQueue: ArrayDeque<StoreGet<T>> = ArrayDeque()
     private val putQueue: ArrayDeque<StorePut<T>> = ArrayDeque()
@@ -84,7 +84,7 @@ class Store<T>(env: Environment, val storeCapacity: Int) : ResourceBase(env, sto
      * @return Item from the store
      */
     private fun getNextItem(): T {
-        if (numberOfAvailableItems == 0) {
+        if (items.isEmpty()) {
             throw StoreIsEmptyException()
         }
 
@@ -97,7 +97,7 @@ class Store<T>(env: Environment, val storeCapacity: Int) : ResourceBase(env, sto
      * @param item Item to put into the store.
      */
     private fun putNextItem(item: T) {
-        if (numberOfAvailableItems < capacity) {
+        if (numberOfAvailableItems < storeCapacity) {
             items.add(item)
         } else {
             throw StoreIsFullException()
