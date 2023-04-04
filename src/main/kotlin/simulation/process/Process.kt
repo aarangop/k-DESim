@@ -38,8 +38,7 @@ import simulation.event.EventBase
 open class Process(
     env: Environment,
     processSequence: Sequence<EventBase>,
-    timeout: Double = 0.0,
-    val processId: String? = null
+    timeout: Double = 0.0
 ) : EventBase(env, timeout) {
 
     private var processSequenceIterator: Iterator<EventBase> = processSequence.iterator()
@@ -57,7 +56,7 @@ open class Process(
     }
 
     fun interrupt() {
-        // TODO Implement `Process.interrupt()`
+        throw NotImplementedError()
     }
 
     private fun resume() {

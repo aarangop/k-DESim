@@ -15,7 +15,7 @@ fun main() {
         println("${env.now} - p1 starting")
         yield(env.timeout(10.0))
         println("${env.now} - p1 finished waiting")
-    }, processId = "Subprocess")
+    })
 
     val mainProcess = Process(env, sequence {
         println("${env.now} - p2 starting")
@@ -25,7 +25,7 @@ fun main() {
         yield(env.process(subProcess))
         println("${env.now} - p1 and p2 finished")
         yield(env.timeout(0.0))
-    }, processId = "Main Process")
+    })
 
     env.process(mainProcess)
     env.run()

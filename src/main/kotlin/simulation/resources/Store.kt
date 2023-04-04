@@ -6,7 +6,6 @@
 
 package simulation.resources
 
-import ResourceBase
 import simulation.core.Environment
 import simulation.event.StoreGet
 import simulation.event.StorePut
@@ -17,7 +16,7 @@ import simulation.exceptions.StoreIsFullException
 /**
  * Discrete resource. Hols a definite, integer number of items.
  */
-class Store<T>(env: Environment, val storeCapacity: Int) : ResourceBase(env) {
+class Store<T>(val env: Environment, val storeCapacity: Int) {
     private var items: ArrayDeque<T> = ArrayDeque()
     private var getQueue: ArrayDeque<StoreGet<T>> = ArrayDeque()
     private val putQueue: ArrayDeque<StorePut<T>> = ArrayDeque()

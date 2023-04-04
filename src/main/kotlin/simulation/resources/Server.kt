@@ -6,46 +6,22 @@
 
 package simulation.resources
 
-import ResourceBase
 import simulation.core.Environment
-import simulation.event.Event
 import simulation.event.EventBase
+import simulation.event.ServerReleaseEvent
+import simulation.event.ServerRequestEvent
 import simulation.exceptions.InvalidServerAction
 import simulation.process.Process
 
 
-class ServerRequestEvent(env: Environment, private val server: Server, val scope: SequenceScope<EventBase>) :
-    Event<Server>(env) {
-
-    fun hasSameScope(actionScope: SequenceScope<EventBase>): Boolean {
-        return scope == actionScope
-    }
-
-    private val tryRequestEvent = EventBase(env)
-
-    init {
-        tryRequestEvent.appendCallback { server.tryRequest(this) }
-        appendCallback { server.processRequest(this) }
-        env.schedule(tryRequestEvent)
-    }
-}
-
-class ServerReleaseEvent(env: Environment, val server: Server) : Event<Server>(env) {
-    private val tryReleaseEvent = EventBase(env)
-
-    init {
-        tryReleaseEvent.appendCallback { server.tryRelease(this) }
-        appendCallback { server.processRelease() }
-        env.schedule(tryReleaseEvent)
-    }
-}
-
 /**
- * The server class represents a resource which can be blocked and released by another simulation entity.
+ * The server class represents a resource which can be blocked and released within a process.
  *
- * The server class is supposed to be subclassed.
+ * The server class is intended to be subclassed. Server functions can be 'decorated' with the `serverAction` method,
+ * which ensures that an exception is thrown if the server is being used by a process that has not been granted access
+ * to the server.
  */
-open class Server(env: Environment) : ResourceBase(env) {
+open class Server(val env: Environment) {
     private var isBlocked = false
     private var requestQueue: ArrayDeque<ServerRequestEvent> = ArrayDeque()
     private var activeRequest: ServerRequestEvent? = null
@@ -55,7 +31,7 @@ open class Server(env: Environment) : ResourceBase(env) {
      * from which the function is called and a function to be executed.
      *
      * The function is only executed if the scope matches the scope of the active requests. This mechanism enforces that
-     * server functions are only called by processes who currently own the Server.
+     * server functions are only called by processes that have been granted access to the `Server`.
      *
      * @param scope Current process scope
      */
@@ -72,13 +48,14 @@ open class Server(env: Environment) : ResourceBase(env) {
 
 
     /**
-     * The `request` method makes an attempt to block the Server. It returns an event, which holds the server instance
-     * as value when processed.
+     * The `request` method makes an attempt to block the Server.
      *
-     * @return An event associated with the request. After the event is processed, the server will be available through
-     * the event's value.
+     * The `request` method returns an event that a process can wait for (yield). After the event is processed, the
+     * server is available within the process where it was requested.
+     *
+     * @return An event associated with the request.
      */
-    override fun request(scope: SequenceScope<EventBase>): ServerRequestEvent {
+    fun request(scope: SequenceScope<EventBase>): ServerRequestEvent {
         return ServerRequestEvent(this.env, this, scope)
     }
 
@@ -92,20 +69,36 @@ open class Server(env: Environment) : ResourceBase(env) {
      *
      * @return An event associated with the release.
      */
-    override fun release(): ServerReleaseEvent {
+    fun release(): ServerReleaseEvent {
         return ServerReleaseEvent(this.env, this)
     }
 
+    /**
+     * The `processRequest` method is called after a request event has been triggered.
+     *
+     * During `processRequest` the `Server` is marked as blocked and the request that blocked it is saved as the
+     * currently active request.
+     *
+     * @param request Event that triggered the call to `processRequest`.
+     */
     internal fun processRequest(request: ServerRequestEvent) {
         // Set the request as the active request.
         activeRequest = request
+        isBlocked = true
     }
 
+    /**
+     * Release the `Server` by marking it as unblocked, expire the request event that requested the `Server` and unset
+     * the `activeRequest`.
+     *
+     * If there are queued requests, try to process the next one.
+     */
     internal fun processRelease() {
         // Expire the event associated with the request.
         activeRequest?.expire()
         // Unset the active request.
         activeRequest = null
+        isBlocked = false
         // After the server is released, check if there are queued requests and process the next one.
         if (!requestQueue.isEmpty()) {
             val nextRequest = requestQueue.removeFirst()
@@ -113,6 +106,11 @@ open class Server(env: Environment) : ResourceBase(env) {
         }
     }
 
+    /**
+     * Try to fulfill a request for a server. If the server is currently blocked, queue the request.
+     *
+     * @param request Server request event.
+     */
     internal fun tryRequest(request: ServerRequestEvent) {
         // Check if the server is blocked
         if (isBlocked) {
@@ -124,8 +122,12 @@ open class Server(env: Environment) : ResourceBase(env) {
         }
     }
 
+    /**
+     * Try to release the server. The associated release request should be processed immediately.
+     *
+     * @param request Release request event.
+     */
     fun tryRelease(request: ServerReleaseEvent) {
-        isBlocked = false
         request.succeed(this)
     }
 }
