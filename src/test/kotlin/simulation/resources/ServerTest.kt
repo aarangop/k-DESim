@@ -21,7 +21,7 @@ class ServerTest : KDESimTestBase() {
         fun doSomething(scope: SequenceScope<Event>) = serverAction(scope) {
             sequence {
                 println("Server will start a long work @${env.now}")
-                yield(env.timeout(50.0))
+                yield(env.timeout(1000.0))
                 println("Server finished work @${env.now}")
             }
         }
@@ -76,12 +76,12 @@ class ServerTest : KDESimTestBase() {
             yield(env.timeout(10.0))
             yield(server.release())
         })
-        env.process(sequence {
+        val process = env.process(sequence {
             yield(server.request(this))
             assertDoesNotThrow { server.doSomething(this) }
         })
 
-        env.run()
+        env.run(process)
     }
 
     @Test
@@ -100,5 +100,25 @@ class ServerTest : KDESimTestBase() {
         })
 
         env.run()
+    }
+
+    @Test
+    fun `server action blocks until sequence finishes`() {
+        val server = MyServer(env)
+        var timeServerFinishedAction = 0.0
+        env.process(sequence {
+            yield(server.request(this))
+            yield(env.timeout(10.0))
+            yield(server.release())
+        })
+        val process = env.process(sequence {
+            yield(server.request(this))
+            yield(server.doSomething(this))
+            timeServerFinishedAction = env.now
+        })
+
+        env.run(process)
+
+        assertEquals(1010.0, timeServerFinishedAction)
     }
 }
