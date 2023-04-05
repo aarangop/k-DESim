@@ -4,6 +4,6 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-rootProject.name = "k-desim"
-include(":core", "samples")
+package event
 
+class EventValue<T>(var status: EventValueStatus = EventValueStatus.PENDING, var value: T? = null)

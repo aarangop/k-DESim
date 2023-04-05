@@ -4,6 +4,9 @@
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
 
-rootProject.name = "k-desim"
-include(":core", "samples")
+package exceptions
 
+class StoreAlreadyInitializedException : Throwable() {
+    override val message: String
+        get() = "The store is already initialized."
+}
