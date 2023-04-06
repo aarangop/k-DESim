@@ -43,6 +43,12 @@ open class Server(val env: Environment) {
         }
     }
 
+//    fun <T> serverAction(scope: SequenceScope<Event>, fn: (vararg: T) -> Sequence<Event>, vararg args: T): Event {
+//        if (activeRequest?.hasSameScope(scope) == true) {
+//            return env.process(fn(args))
+//        }
+//    }
+
 
     /**
      * The `request` method makes an attempt to block the Server.

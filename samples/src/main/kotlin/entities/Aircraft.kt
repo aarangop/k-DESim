@@ -8,10 +8,8 @@ package entities
 
 import Entity
 import Environment
-import event.Event
 import event.ValueEvent
 import process.SimProcess
-import samples.Runway
 
 class Aircraft(env: Environment, val aircraftId: String) : Entity(env) {
     val turnOnEvent: ValueEvent<Aircraft> = ValueEvent(env)
@@ -37,14 +35,5 @@ class Aircraft(env: Environment, val aircraftId: String) : Entity(env) {
             takeoffEvent.succeed(this@Aircraft)
         }))
         return takeoffEvent
-    }
-
-    fun takeOffFromRunway(runway: Runway): Event {
-        return env.process(sequence {
-            yield(runway.request(this))
-            yield(env.timeout(30.0))
-            println("Aircraft $aircraftId Took of from runway ${runway.name} @${env.now}")
-            yield(runway.release())
-        })
     }
 }

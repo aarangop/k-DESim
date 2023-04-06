@@ -5,5 +5,5 @@
  */
 
 rootProject.name = "k-desim"
-include(":core", "samples")
+include("core", "samples")
 

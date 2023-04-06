@@ -132,10 +132,4 @@ class StoreTest : KDESimTestBase() {
 
         assertEquals(EventValueStatus.AVAILABLE, putRequest!!.valueStatus)
     }
-
-    @Test
-    fun `concurrent requests for a resource must wait for the resource to be released`() {
-        // TODO: test concurrent access to a single resource, e.g. when multiple entities request access to a server each one must wait for the server to be released.
-        assertTrue { false }
-    }
 }

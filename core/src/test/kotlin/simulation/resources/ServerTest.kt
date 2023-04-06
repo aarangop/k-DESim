@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import resources.Server
 import simulation.KDESimTestBase
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -121,5 +122,25 @@ class ServerTest : KDESimTestBase() {
         env.run(process)
 
         assertEquals(1010.0, timeServerFinishedAction)
+    }
+
+    @Test
+    fun `concurrent requests for a resource must wait for the resource to be released`() {
+        val server = MyServer(env)
+        val expectedRequestFulfilledTimes = listOf(0.0, 1100.0, 2200.0, 3300.0, 4400.0)
+        val actualRequestFulfilledTimes = mutableListOf<Double>()
+        // Create multiple processes that will request a server.
+        for (i in 0..4) {
+            env.process(sequence {
+                yield(server.request(this))
+                actualRequestFulfilledTimes += env.now
+                yield(server.doSomething(this))
+                yield(env.timeout(100.0))
+                yield(server.release())
+            })
+        }
+        env.run(5000.0)
+
+        assertContentEquals(expectedRequestFulfilledTimes, actualRequestFulfilledTimes)
     }
 }
