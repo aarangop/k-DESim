@@ -53,7 +53,7 @@ open class Event(
     var id: Int? = null
         private set
 
-    protected var callbacks: Array<(Event) -> Unit> = emptyArray()
+    protected var callbacks: ArrayDeque<(Event) -> Unit> = ArrayDeque()
 
     /**
      * Schedule the event immediately.
@@ -71,7 +71,8 @@ open class Event(
      */
     internal open fun processEvent() {
         isTriggered = true
-        for (callback in callbacks) {
+        while (!callbacks.isEmpty()) {
+            val callback = callbacks.removeFirst()
             callback(this)
         }
         isProcessed = true
@@ -83,7 +84,7 @@ open class Event(
      * @param fn Callback to be appended to the event's callback list.
      */
     open fun appendCallback(fn: (Event) -> Unit) {
-        callbacks += fn
+        callbacks.add(fn)
     }
 
     /**
