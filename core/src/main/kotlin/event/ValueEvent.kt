@@ -18,7 +18,7 @@ import Environment
  * @param timeout Timeout to schedule event. Defaults to 0.0
  */
 open class ValueEvent<T>(env: Environment, timeout: Double = 0.0) : Event(env, timeout) {
-    private var value: EventValue<T> = EventValue()
+    protected var value: EventValue<T> = EventValue()
     val valueStatus: EventValueStatus
         get() = value.status
 

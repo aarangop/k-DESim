@@ -8,6 +8,7 @@ package event
 
 import org.junit.jupiter.api.Test
 import simulation.KDESimTestBase
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ConditionTest : KDESimTestBase() {
@@ -33,9 +34,20 @@ class ConditionTest : KDESimTestBase() {
         assertTrue(timeout1.isProcessed && !timeout2.isProcessed)
     }
 
-    // TODO: test this from SimPy!
-    // Once the condition has triggered, the condition's events no longer need
-    //        to have _check() callbacks. Removing the _check() callbacks is
-    //        important to break circular references between the condition and
-    //        untriggered events.
+    @Test
+    fun `AnyOfCondition returns event that triggered condition`() {
+        val timeout2 = env.timeout(20.0)
+        val event = ValueEvent<String>(env)
+        val anyOfCondition = AnyOfCondition(env, event, timeout2)
+
+        env.schedule(anyOfCondition)
+        env.process(sequence {
+            yield(env.timeout(10.0))
+            event.succeed("Success")
+        })
+
+        env.run()
+
+        assertEquals("Success", anyOfCondition.getConditionValue())
+    }
 }

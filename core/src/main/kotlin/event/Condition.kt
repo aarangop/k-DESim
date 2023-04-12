@@ -17,4 +17,5 @@ abstract class Condition(env: Environment, vararg val events: Event) : ValueEven
     }
 
     abstract fun processConditionEvent(event: Event)
+
 }
